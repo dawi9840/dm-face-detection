@@ -6,8 +6,8 @@ Need to donload pre-trained face dector model [68_face_landmarks](https://jumpsh
 ## Mediapipe
 
 <div align="center">
-<img src="https://user-images.githubusercontent.com/19554347/138227437-cad71e2e-051e-4873-9fa8-c96326c9b7fa.jpg" height="300px" alt="people_face" >
-<img src="https://user-images.githubusercontent.com/19554347/138227450-6512fb85-ef30-4068-b464-2e76d00519f3.png" height="300px" alt="people_face0" >
+<img src="https://user-images.githubusercontent.com/19554347/138227437-cad71e2e-051e-4873-9fa8-c96326c9b7fa.jpg" height="150px" alt="people_face" >
+<img src="https://user-images.githubusercontent.com/19554347/138227450-6512fb85-ef30-4068-b464-2e76d00519f3.png" height="150px" alt="people_face0" >
 </div>
 
 
