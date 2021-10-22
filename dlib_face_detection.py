@@ -50,10 +50,12 @@ def img_face_detector2(img):
         shape = shape_to_np(shape)
         # print(f'shape: {shape}')
 
-    for x, y in shape:
-        cv2.circle(img, (x, y), 2, (0, 0, 255), -1)
+        for x, y in shape:
+            cv2.circle(img, (x, y), 2, (0, 0, 255), -1)
     
+    cv2.imwrite('dlib_result.png', img)
     display_img(img)
+    print('done')
 
     return img
 
@@ -149,9 +151,7 @@ def cap_dlib_img_face_detector(cap):
 
 
 if __name__ == '__main__':
-    # Image test.
-    # img_face_detector1(img=cv2.imread('people.jpg'))
-    # img_face_detector2(img=cv2.imread('people.jpg'))
 
-    # Camera test.
+    # img_face_detector1(img=cv2.imread('people.jpg'))
+    # img_face_detector2(img=cv2.imread('./dawi.jpg'))
     cap_dlib_img_face_detector(cap=cv2.VideoCapture(0))
