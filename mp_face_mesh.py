@@ -40,12 +40,14 @@ def img_face_mesh_get_irises(IMAGE_FILES):
             # print('face_landmarks:', face_landmarks)
 
             for data_point in face_landmarks.landmark:
-                keypoints.append({
+                keypoints.append(
+                    {
                          'X': data_point.x,
                          'Y': data_point.y,
                         #  'Z': data_point.z,
                         #  'Visibility': data_point.visibility,
-                         })
+                    }
+                )
             # print(f'len: {len(keypoints)}')
             # print(f'face_landmarks:\n {keypoints}')
             
@@ -195,8 +197,27 @@ def img_mp_face_mesh(IMAGE_FILES):
         print('Done!')
 
 
-def cap_mp_face_mesh(cap):
-    '''For webcam input'''
+def cap_mp_face_mesh(cap, out_video=None):
+    '''For webcam input to get medipipe with face mesh.
+    Parameter 'out_video' which default is None, it means not save output video.
+    If want save result video, we can specific out_video=['result_out.mp4].
+    '''
+    if (cap.isOpened() == False):
+        print("Error opening the video file.")
+    else:
+        input_fps, frame_count = cap.get(cv2.CAP_PROP_FPS), int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        cap_w, cap_h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        print(f'Frames Per Second: {input_fps}')
+        print(f'frame count: {frame_count}')
+        print(f'w: {cap_w}, h:{cap_h}')
+    
+    if out_video == None:
+        pass
+    else:
+        output_fps = input_fps - 1
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # 輸出附檔名為 mp4
+        out = cv2.VideoWriter(out_video, fourcc, output_fps, (cap_w, cap_h))
+    
     mp_drawing = mp.solutions.drawing_utils
     mp_drawing_styles = mp.solutions.drawing_styles
     mp_face_mesh = mp.solutions.face_mesh
@@ -207,7 +228,6 @@ def cap_mp_face_mesh(cap):
         refine_landmarks=True,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5) as face_mesh:
-
         while cap.isOpened():
             success, image = cap.read()
             if not success:
@@ -249,7 +269,7 @@ def cap_mp_face_mesh(cap):
                         connections=mp_face_mesh.FACEMESH_CONTOURS,
                         landmark_drawing_spec=None,
                         connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style())
-                    
+
                     # draw eye
                     # mp_drawing.draw_landmarks(
                     #     image=image,
@@ -257,7 +277,11 @@ def cap_mp_face_mesh(cap):
                     #     connections=mp_face_mesh.FACEMESH_IRISES,
                     #     landmark_drawing_spec=None,
                     #     connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_iris_connections_style())
-
+            if out_video == None:
+                    pass
+            else:
+                image2 = cv2.flip(image, 1)
+                out.write(image2)
             # Flip the image horizontally for a selfie-view display.
             cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -293,7 +317,127 @@ def show_a_img(img):
     cv2.destroyAllWindows()
 
 
+def cap_face_mesh_get_irises(cap, out_video=None):
+    ''' Make mediapipe detections with a video (or use camera) to show some info for face mesh to get irises. 
+    Parameter 'out_video' which default is None, it means not save output video.
+    If want save result video, we can specific out_video=['result_out.mp4].
+    '''
+    if (cap.isOpened() == False):
+        print("Error opening the video file.")
+    else:
+        input_fps, frame_count = cap.get(cv2.CAP_PROP_FPS), int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        cap_w, cap_h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        print(f'Frames Per Second: {input_fps}')
+        print(f'frame count: {frame_count}')
+        print(f'w: {cap_w}, h:{cap_h}')
+    
+    if out_video == None:
+        pass
+    else:
+        output_fps = input_fps - 1
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # 輸出附檔名為 mp4
+        out = cv2.VideoWriter(out_video, fourcc, output_fps, (cap_w, cap_h))
+
+    mp_drawing = mp.solutions.drawing_utils
+    mp_drawing_styles = mp.solutions.drawing_styles
+    mp_face_mesh = mp.solutions.face_mesh
+    drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
+
+    with mp_face_mesh.FaceMesh(
+        max_num_faces=1,
+        refine_landmarks=True,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5) as face_mesh:
+
+        
+        while cap.isOpened():
+            success, image = cap.read()
+            if not success:
+                print("Ignoring empty camera frame.")
+                # If loading a video, use 'break' instead of 'continue'.
+                continue
+
+            # To improve performance, optionally mark the image as not writeable to pass by reference.
+            image.flags.writeable = False
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = face_mesh.process(image)
+
+            # Draw the face mesh annotations on the image.
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            keypoints = []
+            if results.multi_face_landmarks:
+                for face_landmarks in results.multi_face_landmarks:
+                    # print(f'face_landmarks:\n {face_landmarks}')
+
+                    for data_point in face_landmarks.landmark:
+                        keypoints.append(
+                            {
+                            'X': data_point.x,
+                            'Y': data_point.y,
+                            'Z': data_point.z,
+                            'Visibility': data_point.visibility
+                            }
+                        )
+                    # print(f'len: {len(keypoints)}')
+                    # print(f'face_landmarks:\n {keypoints}')
+
+                    # # draw face contour
+                    # mp_drawing.draw_landmarks(
+                    #     image=image,
+                    #     landmark_list=face_landmarks,
+                    #     connections=mp_face_mesh.FACEMESH_CONTOURS,
+                    #     landmark_drawing_spec=None, # drawing_spec
+                    #     connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style())
+            # Draw line for irises.
+            try:
+                # l_eye_up = 470, l_eye_down = 145, r_eye_up= 475, r_eye_down= 374 
+                l_eye_up_x = int(keypoints[470].get('X')*cap_w)
+                l_eye_up_y = int(keypoints[470].get('Y')*cap_h)
+
+                l_eye_down_x = int(keypoints[145].get('X')*cap_w)
+                l_eye_down_y = int(keypoints[145].get('Y')*cap_h) 
+
+                r_eye_up_x = int(keypoints[475].get('X')*cap_w)
+                r_eye_up_y = int(keypoints[475].get('Y')*cap_h) 
+
+                r_eye_down_x = int(keypoints[374].get('X')*cap_w)
+                r_eye_down_y = int(keypoints[374].get('Y')*cap_h)
+
+                num = 10
+                line_thickness = 2
+                cv2.line(image, (l_eye_up_x, l_eye_up_y-num), (l_eye_up_x, l_eye_up_y+num), color.blue, line_thickness)
+                cv2.line(image, (l_eye_up_x-num, l_eye_up_y), (l_eye_up_x+num, l_eye_up_y), color.blue, line_thickness)
+
+                cv2.line(image, (l_eye_down_x, l_eye_down_y-num), (l_eye_down_x, l_eye_down_y+num), color.green, line_thickness)
+                cv2.line(image, (l_eye_down_x-num, l_eye_down_y), (l_eye_down_x+num, l_eye_down_y), color.green, line_thickness)
+
+                cv2.line(image, (r_eye_up_x, r_eye_up_y-num), (r_eye_up_x, r_eye_up_y+num), color.blue, line_thickness)
+                cv2.line(image, (r_eye_up_x-num, r_eye_up_y), (r_eye_up_x+num, r_eye_up_y), color.blue, line_thickness)
+
+                cv2.line(image, (r_eye_down_x, r_eye_down_y-num), (r_eye_down_x, r_eye_down_y+num), color.green, line_thickness)
+                cv2.line(image, (r_eye_down_x-num, r_eye_down_y), (r_eye_down_x+num, r_eye_down_y), color.green, line_thickness)
+            except:
+                print('Cannot draw line!')
+
+            if out_video == None:
+                    pass
+            else:
+                image2 = cv2.flip(image, 1)
+                out.write(image2)
+
+            # Flip the image horizontally for a selfie-view display.
+            cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    cap.release()
+    pass
+
+
 if __name__ == '__main__':
-    img_face_mesh_get_irises(IMAGE_FILES=['./people_face1.jpg'])
+    # img_mp_face_mesh(IMAGE_FILES=['./people_face1.jpg'])
+    # img_face_mesh_get_irises(IMAGE_FILES=['./people_face1.jpg'])
     # cap_mp_face_mesh(cap=cv2.VideoCapture(0))
     # show_a_img('./people_face.jpg')
+    cap_face_mesh_get_irises(cap=cv2.VideoCapture(0), out_video='test.mp4')
