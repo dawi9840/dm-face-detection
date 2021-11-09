@@ -28,5 +28,5 @@ conda activate [env_name]
 
 conda install -c conda-forge dlib
 
-pip install opencv-python scipy imutils pyglet mediapipe
+pip install opencv-python scipy imutils pyglet mediapipe matplotlib
 ```
